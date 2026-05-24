@@ -1,0 +1,4 @@
+anthropic>=0.34
+crewai>=0.80
+faker>=24.0
+gradio>=4.44
