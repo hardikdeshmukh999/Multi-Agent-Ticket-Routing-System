@@ -1,0 +1,964 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>RouteIQ — AI Support Routing</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"/>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet"/>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --ink:     #0a0a0a;
+    --ink-2:   #3a3a3a;
+    --ink-3:   #7a7a7a;
+    --rule:    #e0e0e0;
+    --bg:      #fafaf8;
+    --bg-2:    #f2f2ef;
+    --accent:  #0a0a0a;
+    --green:   #1a6b3c;
+    --red:     #8b1a1a;
+    --amber:   #7a4f00;
+    --blue:    #1a3a6b;
+  }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 48px;
+    height: 60px;
+    background: rgba(250,250,248,0.92);
+    backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--rule);
+  }
+  .nav-logo {
+    font-family: 'DM Serif Display', serif;
+    font-size: 20px;
+    letter-spacing: -0.5px;
+    color: var(--ink);
+    text-decoration: none;
+  }
+  .nav-links { display: flex; gap: 32px; list-style: none; }
+  .nav-links a {
+    font-size: 13px; font-weight: 400; color: var(--ink-2);
+    text-decoration: none; letter-spacing: 0.02em;
+    transition: color 0.2s;
+  }
+  .nav-links a:hover { color: var(--ink); }
+  .nav-cta {
+    font-size: 13px; font-weight: 500;
+    padding: 8px 20px;
+    background: var(--ink); color: #fff;
+    border: none; cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: opacity 0.2s;
+    text-decoration: none;
+  }
+  .nav-cta:hover { opacity: 0.8; }
+
+  /* ── SECTIONS ── */
+  section { padding: 120px 48px; }
+  .container { max-width: 1100px; margin: 0 auto; }
+
+  /* ── HERO ── */
+  #hero {
+    min-height: 100vh;
+    display: flex; align-items: center;
+    padding-top: 140px; padding-bottom: 80px;
+    border-bottom: 1px solid var(--rule);
+  }
+  .hero-eyebrow {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; font-weight: 400;
+    letter-spacing: 0.15em;
+    color: var(--ink-3);
+    text-transform: uppercase;
+    margin-bottom: 32px;
+    opacity: 0; animation: fadeUp 0.6s 0.1s forwards;
+  }
+  .hero-headline {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(48px, 7vw, 88px);
+    line-height: 1.0;
+    letter-spacing: -2px;
+    color: var(--ink);
+    margin-bottom: 32px;
+    opacity: 0; animation: fadeUp 0.6s 0.25s forwards;
+  }
+  .hero-headline em {
+    font-style: italic; color: var(--ink-3);
+  }
+  .hero-sub {
+    font-size: 18px; font-weight: 300;
+    color: var(--ink-2); line-height: 1.7;
+    max-width: 540px;
+    margin-bottom: 48px;
+    opacity: 0; animation: fadeUp 0.6s 0.4s forwards;
+  }
+  .hero-actions {
+    display: flex; gap: 16px; align-items: center;
+    opacity: 0; animation: fadeUp 0.6s 0.55s forwards;
+  }
+  .btn-primary {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; font-weight: 500;
+    padding: 14px 32px;
+    background: var(--ink); color: #fff;
+    border: none; cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: opacity 0.2s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-primary:hover { opacity: 0.8; }
+  .btn-ghost {
+    font-size: 14px; font-weight: 400;
+    padding: 14px 32px;
+    background: transparent; color: var(--ink);
+    border: 1px solid var(--rule); cursor: pointer;
+    letter-spacing: 0.02em;
+    transition: border-color 0.2s;
+    text-decoration: none; display: inline-block;
+  }
+  .btn-ghost:hover { border-color: var(--ink); }
+  .hero-stats {
+    display: flex; gap: 48px;
+    margin-top: 80px; padding-top: 48px;
+    border-top: 1px solid var(--rule);
+    opacity: 0; animation: fadeUp 0.6s 0.7s forwards;
+  }
+  .stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 36px; line-height: 1;
+    letter-spacing: -1px;
+  }
+  .stat-label {
+    font-size: 12px; color: var(--ink-3);
+    margin-top: 6px; letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  /* ── PROBLEM ── */
+  #problem { background: var(--ink); color: #fff; border-bottom: none; }
+  #problem .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: rgba(255,255,255,0.4);
+    margin-bottom: 64px;
+  }
+  .problem-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr);
+    gap: 1px; background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+  .problem-card {
+    padding: 48px 40px;
+    background: var(--ink);
+  }
+  .problem-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 64px; line-height: 1;
+    color: rgba(255,255,255,0.12);
+    margin-bottom: 24px;
+  }
+  .problem-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 22px; color: #fff;
+    margin-bottom: 16px; line-height: 1.2;
+  }
+  .problem-text { font-size: 14px; color: rgba(255,255,255,0.5); line-height: 1.7; }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; letter-spacing: 0.15em;
+    text-transform: uppercase; color: var(--ink-3);
+    margin-bottom: 64px;
+    display: flex; align-items: center; gap: 16px;
+  }
+  .section-label::after {
+    content: ''; flex: 1; max-width: 60px;
+    height: 1px; background: var(--rule);
+  }
+  .section-headline {
+    font-family: 'DM Serif Display', serif;
+    font-size: clamp(32px, 4vw, 52px);
+    letter-spacing: -1.5px; line-height: 1.1;
+    margin-bottom: 24px;
+  }
+  .section-sub {
+    font-size: 16px; font-weight: 300;
+    color: var(--ink-2); max-width: 520px;
+    line-height: 1.8; margin-bottom: 64px;
+  }
+
+  /* ── DEMO ── */
+  #demo { background: var(--bg-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .demo-shell {
+    border: 1px solid var(--rule);
+    background: #fff;
+    overflow: hidden;
+  }
+  .demo-topbar {
+    display: flex; align-items: center; gap: 8px;
+    padding: 14px 20px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-2);
+  }
+  .demo-dot { width: 10px; height: 10px; border-radius: 50%; }
+  .demo-title-bar {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; color: var(--ink-3);
+    margin-left: 12px; letter-spacing: 0.05em;
+  }
+  .demo-body { display: grid; grid-template-columns: 1fr 1fr; min-height: 520px; }
+  .demo-input-pane {
+    padding: 36px;
+    border-right: 1px solid var(--rule);
+  }
+  .demo-output-pane { padding: 36px; background: #fff; }
+  .input-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+  .demo-input-pane input, .demo-input-pane textarea {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px; color: var(--ink);
+    background: var(--bg-2);
+    border: 1px solid var(--rule);
+    padding: 12px 16px;
+    outline: none;
+    transition: border-color 0.2s;
+    resize: none;
+    line-height: 1.6;
+  }
+  .demo-input-pane input:focus, .demo-input-pane textarea:focus {
+    border-color: var(--ink);
+  }
+  .demo-input-pane textarea { min-height: 120px; margin-bottom: 16px; }
+  .demo-input-pane input { margin-bottom: 20px; }
+  .demo-scenarios {
+    margin-bottom: 24px;
+  }
+  .demo-scenarios-label {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3);
+    margin-bottom: 10px;
+  }
+  .scenario-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .scenario-pill {
+    font-size: 11px; padding: 5px 10px;
+    border: 1px solid var(--rule);
+    background: transparent; cursor: pointer;
+    color: var(--ink-2); transition: all 0.15s;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .scenario-pill:hover { border-color: var(--ink); color: var(--ink); }
+  .run-btn {
+    width: 100%;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 13px; font-weight: 500;
+    padding: 14px;
+    background: var(--ink); color: #fff;
+    border: none; cursor: pointer;
+    letter-spacing: 0.04em;
+    transition: opacity 0.2s;
+  }
+  .run-btn:hover:not(:disabled) { opacity: 0.8; }
+  .run-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .api-key-row {
+    display: flex; gap: 8px; margin-bottom: 20px; align-items: stretch;
+  }
+  .api-key-row input {
+    flex: 1; margin-bottom: 0 !important;
+    font-family: 'DM Mono', monospace;
+    font-size: 12px;
+  }
+  .api-key-note {
+    font-size: 11px; color: var(--ink-3);
+    margin-bottom: 16px; line-height: 1.5;
+  }
+  .agent-stream { display: flex; flex-direction: column; gap: 16px; }
+  .agent-row {
+    display: flex; gap: 14px; align-items: flex-start;
+    opacity: 0; transform: translateY(8px);
+    transition: opacity 0.4s, transform 0.4s;
+  }
+  .agent-row.visible { opacity: 1; transform: translateY(0); }
+  .agent-icon {
+    width: 32px; height: 32px;
+    border: 1px solid var(--rule);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; flex-shrink: 0;
+    background: var(--bg-2);
+  }
+  .agent-icon.active { border-color: var(--ink); background: var(--ink); }
+  .agent-icon.done { border-color: var(--green); background: #f0fff4; }
+  .agent-content { flex: 1; min-width: 0; }
+  .agent-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3);
+    margin-bottom: 4px;
+  }
+  .agent-name.active { color: var(--ink); }
+  .agent-name.done { color: var(--green); }
+  .agent-output {
+    font-size: 13px; color: var(--ink-2);
+    line-height: 1.6;
+    font-family: 'DM Mono', monospace;
+    white-space: pre-wrap; word-break: break-word;
+  }
+  .result-card {
+    margin-top: 16px;
+    border: 1px solid var(--rule);
+    padding: 20px; background: var(--bg-2);
+    display: none;
+  }
+  .result-card.visible { display: block; }
+  .result-row {
+    display: flex; justify-content: space-between;
+    padding: 8px 0; border-bottom: 1px solid var(--rule);
+    font-size: 13px;
+  }
+  .result-row:last-child { border-bottom: none; }
+  .result-key { color: var(--ink-3); font-family: 'DM Mono', monospace; font-size: 11px; }
+  .result-val { color: var(--ink); font-weight: 500; }
+  .priority-urgent { color: var(--red); }
+  .priority-high   { color: var(--amber); }
+  .priority-medium { color: var(--blue); }
+  .priority-low    { color: var(--green); }
+  .status-msg {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; color: var(--ink-3);
+    margin-bottom: 16px; min-height: 16px;
+  }
+
+  /* ── HOW IT WORKS ── */
+  #how { border-top: 1px solid var(--rule); }
+  .flowchart-container {
+    border: 1px solid var(--rule);
+    background: #fff;
+    overflow: hidden;
+  }
+  .flowchart-topbar {
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-2);
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; color: var(--ink-3);
+    letter-spacing: 0.05em;
+  }
+  .flowchart-container img {
+    width: 100%; display: block;
+    max-height: 640px; object-fit: contain;
+    padding: 24px; background: #fff;
+  }
+  .steps-grid {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0;
+    border: 1px solid var(--rule); margin-top: 48px;
+  }
+  .step-card {
+    padding: 36px 32px;
+    border-right: 1px solid var(--rule);
+    border-bottom: 1px solid var(--rule);
+  }
+  .step-card:nth-child(3n) { border-right: none; }
+  .step-card:nth-last-child(-n+3) { border-bottom: none; }
+  .step-num {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; color: var(--ink-3);
+    letter-spacing: 0.1em; margin-bottom: 16px;
+  }
+  .step-title {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px; margin-bottom: 10px; line-height: 1.2;
+  }
+  .step-desc { font-size: 13px; color: var(--ink-2); line-height: 1.7; }
+
+  /* ── DATABASE ── */
+  #database { background: var(--bg-2); border-top: 1px solid var(--rule); border-bottom: 1px solid var(--rule); }
+  .erd-shell {
+    border: 1px solid var(--rule);
+    background: #fff; overflow: hidden;
+  }
+  .erd-topbar {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 20px;
+    border-bottom: 1px solid var(--rule);
+    background: var(--bg-2);
+  }
+  .erd-title {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; color: var(--ink-3); letter-spacing: 0.05em;
+  }
+  .erd-open-btn {
+    font-family: 'DM Mono', monospace;
+    font-size: 11px; color: var(--ink-2);
+    background: none; border: 1px solid var(--rule);
+    padding: 4px 10px; cursor: pointer;
+    transition: all 0.15s; text-decoration: none;
+    display: inline-block;
+  }
+  .erd-open-btn:hover { border-color: var(--ink); color: var(--ink); }
+  .erd-shell iframe {
+    width: 100%; height: 520px;
+    border: none; display: block;
+  }
+  .db-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 0; border: 1px solid var(--rule);
+    margin-top: 48px;
+  }
+  .db-stat {
+    padding: 32px 28px;
+    border-right: 1px solid var(--rule);
+  }
+  .db-stat:last-child { border-right: none; }
+  .db-stat-num {
+    font-family: 'DM Serif Display', serif;
+    font-size: 40px; line-height: 1;
+    letter-spacing: -1px; margin-bottom: 8px;
+  }
+  .db-stat-table {
+    font-family: 'DM Mono', monospace;
+    font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--ink-3);
+    margin-bottom: 6px;
+  }
+  .db-stat-desc { font-size: 12px; color: var(--ink-3); line-height: 1.5; }
+
+  /* ── STACK ── */
+  #stack { border-top: 1px solid var(--rule); }
+  .stack-grid {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 0; border: 1px solid var(--rule);
+  }
+  .stack-card {
+    padding: 36px 24px;
+    border-right: 1px solid var(--rule);
+    text-align: center;
+  }
+  .stack-card:last-child { border-right: none; }
+  .stack-icon { font-size: 28px; margin-bottom: 12px; }
+  .stack-name {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; font-weight: 500;
+    margin-bottom: 6px; letter-spacing: 0.05em;
+  }
+  .stack-role { font-size: 12px; color: var(--ink-3); }
+
+  /* ── FOOTER ── */
+  footer {
+    border-top: 1px solid var(--rule);
+    padding: 48px;
+    display: flex; align-items: center; justify-content: space-between;
+  }
+  .footer-left { }
+  .footer-name {
+    font-family: 'DM Serif Display', serif;
+    font-size: 18px; margin-bottom: 4px;
+  }
+  .footer-sub { font-size: 13px; color: var(--ink-3); }
+  .footer-links { display: flex; gap: 24px; }
+  .footer-links a {
+    font-family: 'DM Mono', monospace;
+    font-size: 12px; color: var(--ink-3);
+    text-decoration: none; letter-spacing: 0.05em;
+    transition: color 0.2s;
+  }
+  .footer-links a:hover { color: var(--ink); }
+
+  /* ── ANIMATIONS ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .reveal {
+    opacity: 0; transform: translateY(20px);
+    transition: opacity 0.6s, transform 0.6s;
+  }
+  .reveal.in { opacity: 1; transform: translateY(0); }
+
+  @media (max-width: 768px) {
+    nav { padding: 0 20px; }
+    section { padding: 80px 20px; }
+    .demo-body { grid-template-columns: 1fr; }
+    .problem-grid, .steps-grid, .stack-grid { grid-template-columns: 1fr; }
+    .db-stats { grid-template-columns: repeat(2, 1fr); }
+    .hero-stats { flex-wrap: wrap; gap: 28px; }
+    .demo-input-pane { border-right: none; border-bottom: 1px solid var(--rule); }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a href="#" class="nav-logo">RouteIQ</a>
+  <ul class="nav-links">
+    <li><a href="#demo">Demo</a></li>
+    <li><a href="#how">How it works</a></li>
+    <li><a href="#database">Data model</a></li>
+    <li><a href="#stack">Stack</a></li>
+  </ul>
+  <a href="#demo" class="nav-cta">Try it live →</a>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="container">
+    <p class="hero-eyebrow">AI-powered support operations</p>
+    <h1 class="hero-headline">
+      Every ticket.<br/>
+      <em>Routed instantly.</em><br/>
+      Zero manual triage.
+    </h1>
+    <p class="hero-sub">
+      Six specialist AI agents classify, prioritise, assign, and respond to every
+      support request in under two minutes — with a full audit trail and real-time
+      human assignment.
+    </p>
+    <div class="hero-actions">
+      <a href="#demo" class="btn-primary">See it route a live ticket →</a>
+      <a href="https://github.com/hardikdeshmukh999/Multi-Agent-Ticket-Routing-System" target="_blank" class="btn-ghost">View on GitHub</a>
+    </div>
+    <div class="hero-stats">
+      <div>
+        <div class="stat-num">6</div>
+        <div class="stat-label">Specialist AI agents</div>
+      </div>
+      <div>
+        <div class="stat-num">14</div>
+        <div class="stat-label">Departments</div>
+      </div>
+      <div>
+        <div class="stat-num">20</div>
+        <div class="stat-label">Human agents</div>
+      </div>
+      <div>
+        <div class="stat-num">&lt;2m</div>
+        <div class="stat-label">End-to-end routing</div>
+      </div>
+      <div>
+        <div class="stat-num">9</div>
+        <div class="stat-label">Specialist teams</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROBLEM -->
+<section id="problem">
+  <div class="container">
+    <div class="section-label" style="color:rgba(255,255,255,0.3)">The problem</div>
+    <div class="problem-grid reveal">
+      <div class="problem-card">
+        <div class="problem-num">01</div>
+        <div class="problem-title">Tickets land in the wrong team</div>
+        <div class="problem-text">Manual triage means a billing dispute sits in technical support for hours before anyone notices. Every misroute costs SLA points.</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-num">02</div>
+        <div class="problem-title">Priority is guesswork</div>
+        <div class="problem-text">Without context — who the customer is, what plan they're on, how long they've been with you — every ticket looks the same until it's too late.</div>
+      </div>
+      <div class="problem-card">
+        <div class="problem-num">03</div>
+        <div class="problem-title">No audit trail</div>
+        <div class="problem-text">When an enterprise client escalates, nobody can explain why their ticket sat unassigned for 6 hours. The routing logic was in someone's head.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DEMO -->
+<section id="demo">
+  <div class="container">
+    <div class="section-label reveal">Live demo</div>
+    <h2 class="section-headline reveal">Watch six agents route a real ticket</h2>
+    <p class="section-sub reveal">Enter any support issue below — or load a scenario. The AI crew runs live using Claude and streams each agent's decision as it happens.</p>
+
+    <div class="demo-shell reveal">
+      <div class="demo-topbar">
+        <div class="demo-dot" style="background:#e0e0e0"></div>
+        <div class="demo-dot" style="background:#e0e0e0"></div>
+        <div class="demo-dot" style="background:#e0e0e0"></div>
+        <span class="demo-title-bar">routeiq — live routing engine</span>
+      </div>
+      <div class="demo-body">
+        <div class="demo-input-pane">
+          <div class="input-label">Your Anthropic API key</div>
+          <div class="api-key-row">
+            <input type="password" id="apiKey" placeholder="sk-ant-..." autocomplete="off"/>
+          </div>
+          <p class="api-key-note">Key runs locally in your browser. Not stored anywhere. Get one at console.anthropic.com</p>
+
+          <div class="input-label">Customer email</div>
+          <input type="text" id="emailInput" placeholder="customer@company.com" value="alex.morgan@contoso.com"/>
+
+          <div class="input-label">Issue description</div>
+          <textarea id="issueInput" placeholder="Describe the support issue in plain language…">We suspect our Azure tenant has been compromised. Seeing unknown sign-ins from Russia and China over the past 24 hours. Need immediate help.</textarea>
+
+          <div class="demo-scenarios">
+            <div class="demo-scenarios-label">Load a scenario</div>
+            <div class="scenario-pills">
+              <button class="scenario-pill" onclick="loadScenario(0)">🔐 Security breach</button>
+              <button class="scenario-pill" onclick="loadScenario(1)">💳 Billing dispute</button>
+              <button class="scenario-pill" onclick="loadScenario(2)">☁️ Azure outage</button>
+              <button class="scenario-pill" onclick="loadScenario(3)">🔑 MFA lockout</button>
+              <button class="scenario-pill" onclick="loadScenario(4)">📋 Volume license</button>
+            </div>
+          </div>
+
+          <button class="run-btn" id="runBtn" onclick="runDemo()">▶ Route this ticket</button>
+        </div>
+
+        <div class="demo-output-pane">
+          <div class="status-msg" id="statusMsg">Enter your API key and click Route to begin.</div>
+          <div class="agent-stream" id="agentStream">
+            <!-- agents rendered by JS -->
+          </div>
+          <div class="result-card" id="resultCard">
+            <div id="resultRows"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- HOW IT WORKS -->
+<section id="how">
+  <div class="container">
+    <div class="section-label reveal">How it works</div>
+    <h2 class="section-headline reveal">End-to-end in six steps</h2>
+    <p class="section-sub reveal">Every ticket follows the same deterministic path through six specialist agents — no shortcuts, no black boxes.</p>
+
+    <div class="flowchart-container reveal">
+      <div class="flowchart-topbar">system flowchart — full routing pipeline</div>
+      <img src="imgs/flowchart.jpeg" alt="End-to-end routing flowchart showing how a customer ticket flows through six AI agents to resolution"/>
+    </div>
+
+    <div class="steps-grid reveal">
+      <div class="step-card">
+        <div class="step-num">01 — Identify</div>
+        <div class="step-title">Intake Specialist</div>
+        <div class="step-desc">Looks up the customer record — their plan, tier, region, and the last 5 tickets they raised. Context before everything.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">02 — Classify</div>
+        <div class="step-title">Issue Classifier</div>
+        <div class="step-desc">Reads the issue and routes to the correct sub-department with a confidence score. Nine specialist teams across four divisions.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">03 — Prioritise</div>
+        <div class="step-title">Priority Analyst</div>
+        <div class="step-desc">Scores urgency — low to urgent — factoring in customer tier, issue severity, and SLA obligations. Enterprise gets a tier bump.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">04 — Assign</div>
+        <div class="step-title">Dispatcher</div>
+        <div class="step-desc">Finds the agent in the right department with the most remaining capacity. Saves the ticket to the database with full metadata.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">05 — Respond</div>
+        <div class="step-title">Communications Agent</div>
+        <div class="step-desc">Drafts a personalised opening reply — names the assigned agent, states the SLA, adds urgency language when needed.</div>
+      </div>
+      <div class="step-card">
+        <div class="step-num">06 — Review</div>
+        <div class="step-title">Escalation Reviewer</div>
+        <div class="step-desc">Final check. Flags for immediate senior review if confidence is low, priority is urgent, or a security breach is detected.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- DATABASE -->
+<section id="database">
+  <div class="container">
+    <div class="section-label reveal">Data model</div>
+    <h2 class="section-headline reveal">A real database. Not a mock.</h2>
+    <p class="section-sub reveal">Every routing decision reads from and writes to a live SQLite database. Four tables, fully relational, with realistic seed data across all tiers.</p>
+
+    <div class="erd-shell reveal">
+      <div class="erd-topbar">
+        <span class="erd-title">support.db — entity relationship diagram</span>
+        <a href="imgs/support_db_erd.html" target="_blank" class="erd-open-btn">Open full screen ↗</a>
+      </div>
+      <iframe src="imgs/support_db_erd.html" title="Interactive database schema diagram" loading="lazy"></iframe>
+    </div>
+
+    <div class="db-stats reveal">
+      <div class="db-stat">
+        <div class="db-stat-num">14</div>
+        <div class="db-stat-table">departments</div>
+        <div class="db-stat-desc">L0 HQ → L1 divisions → L2 specialist teams. Full hierarchy with SLA hours and escalation paths.</div>
+      </div>
+      <div class="db-stat">
+        <div class="db-stat-num">60</div>
+        <div class="db-stat-table">customers</div>
+        <div class="db-stat-desc">Consumer, SMB, and enterprise tiers across US, EU, APAC, LATAM, and MEA regions.</div>
+      </div>
+      <div class="db-stat">
+        <div class="db-stat-num">20</div>
+        <div class="db-stat-table">agents</div>
+        <div class="db-stat-desc">L1 and L2 agents across all departments with live workload tracking and capacity limits.</div>
+      </div>
+      <div class="db-stat">
+        <div class="db-stat-num">55+</div>
+        <div class="db-stat-table">tickets</div>
+        <div class="db-stat-desc">Pre-seeded real-world scenarios plus every ticket created live through the routing engine.</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- STACK -->
+<section id="stack">
+  <div class="container">
+    <div class="section-label reveal">Technology</div>
+    <h2 class="section-headline reveal">Built on production-grade tools</h2>
+    <p class="section-sub reveal">No wrappers. No abstractions. Every layer is replaceable — swap SQLite for Postgres, Haiku for Sonnet, one line each.</p>
+
+    <div class="stack-grid reveal">
+      <div class="stack-card">
+        <div class="stack-icon">🤖</div>
+        <div class="stack-name">CrewAI</div>
+        <div class="stack-role">Multi-agent orchestration</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-icon">⚡</div>
+        <div class="stack-name">Claude Haiku</div>
+        <div class="stack-role">LLM — reasoning & generation</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-icon">🗄️</div>
+        <div class="stack-name">SQLite</div>
+        <div class="stack-role">Relational database</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-icon">🐍</div>
+        <div class="stack-name">Python</div>
+        <div class="stack-role">Backend & agent logic</div>
+      </div>
+      <div class="stack-card">
+        <div class="stack-icon">🎛️</div>
+        <div class="stack-name">Gradio</div>
+        <div class="stack-role">Ops UI — internal tooling</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-left">
+    <div class="footer-name">Hardik Deshmukh</div>
+    <div class="footer-sub">Computer Science · UT Arlington</div>
+  </div>
+  <div class="footer-links">
+    <a href="https://github.com/hardikdeshmukh999/Multi-Agent-Ticket-Routing-System" target="_blank">GitHub →</a>
+    <a href="https://github.com/hardikdeshmukh999" target="_blank">Profile →</a>
+  </div>
+</footer>
+
+<script>
+// ── Scenarios ──────────────────────────────────────────────────────────────
+const SCENARIOS = [
+  {
+    email: "alex.morgan@contoso.com",
+    issue: "We suspect our Azure tenant has been compromised. Seeing unknown sign-ins from Russia and China over the past 24 hours. Need immediate help."
+  },
+  {
+    email: "lisa.park@fabrikam.com",
+    issue: "My Microsoft 365 Business Premium subscription expired but I was still charged $299 this month. Please process a refund."
+  },
+  {
+    email: "dev@northwind.io",
+    issue: "Azure Kubernetes Service pods are failing health checks after last night's node pool update. Production is down for 200+ users."
+  },
+  {
+    email: "mark.jones@adventureworks.com",
+    issue: "Cannot log in — MFA Authenticator app is not generating codes after I got a new phone. Completely locked out."
+  },
+  {
+    email: "procurement@tailspin.com",
+    issue: "Our 500-seat volume license agreement renewal was denied. Licenses expire in 4 days. We need urgent escalation."
+  }
+];
+
+function loadScenario(i) {
+  document.getElementById('emailInput').value = SCENARIOS[i].email;
+  document.getElementById('issueInput').value = SCENARIOS[i].issue;
+}
+
+// ── Agent definitions ──────────────────────────────────────────────────────
+const AGENTS = [
+  { icon: "🔍", name: "Intake Specialist",    task: "Looking up customer record…" },
+  { icon: "🗂️", name: "Issue Classifier",     task: "Classifying issue and routing…" },
+  { icon: "📊", name: "Priority Analyst",     task: "Scoring urgency…" },
+  { icon: "📦", name: "Dispatcher",           task: "Finding best available agent…" },
+  { icon: "✉️", name: "Communications Agent", task: "Drafting customer reply…" },
+  { icon: "🚨", name: "Escalation Reviewer",  task: "Reviewing for escalation…" }
+];
+
+function renderAgents(activeIdx = -1, outputs = {}) {
+  const stream = document.getElementById('agentStream');
+  stream.innerHTML = AGENTS.map((a, i) => {
+    const isDone   = i in outputs;
+    const isActive = i === activeIdx;
+    const iconCls  = isDone ? 'done' : isActive ? 'active' : '';
+    const nameCls  = isDone ? 'done' : isActive ? 'active' : '';
+    const outputTxt = isDone ? outputs[i] : isActive ? a.task : '';
+    return `
+      <div class="agent-row visible">
+        <div class="agent-icon ${iconCls}">${isDone ? '✓' : a.icon}</div>
+        <div class="agent-content">
+          <div class="agent-name ${nameCls}">${a.name}</div>
+          ${outputTxt ? `<div class="agent-output">${outputTxt}</div>` : ''}
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ── Run demo ───────────────────────────────────────────────────────────────
+async function runDemo() {
+  const apiKey = document.getElementById('apiKey').value.trim();
+  const email  = document.getElementById('emailInput').value.trim();
+  const issue  = document.getElementById('issueInput').value.trim();
+
+  if (!apiKey) { setStatus('⚠ Please enter your Anthropic API key above.'); return; }
+  if (!email || !issue) { setStatus('⚠ Please fill in both email and issue.'); return; }
+
+  const btn = document.getElementById('runBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Routing…';
+  document.getElementById('resultCard').classList.remove('visible');
+
+  const outputs = {};
+  const systemPrompt = `You are a Microsoft support routing AI. Given a customer email and issue, 
+you must simulate exactly 6 specialist agents working sequentially. 
+For EACH agent, output a section tagged like: [AGENT_1], [AGENT_2], ... [AGENT_6]
+After the agent sections, output a JSON result tagged [RESULT] with keys:
+dept (string), priority (urgent/high/medium/low), agent (string name), 
+sla (string like "4 hours"), escalate (boolean), confidence (number 0-100),
+reply (2-3 sentence customer email reply).
+
+Agents:
+1. Intake Specialist — look up customer, state their tier/plan context
+2. Issue Classifier — route to exact dept (Billing/Azure Support/M365 Support/Teams/MFA & Authentication/Breach Response/Volume Licensing/Renewals/OEM & Retail), give confidence %
+3. Priority Analyst — assign priority with one-sentence reason
+4. Dispatcher — assign a realistic agent name from the right team, note workload
+5. Communications Agent — write the opening reply
+6. Escalation Reviewer — decide escalate true/false with reason
+
+Be concise per agent (2-3 sentences max). Sound like a real enterprise system.`;
+
+  const userMsg = `Customer email: ${email}\n\nIssue: ${issue}`;
+
+  try {
+    const resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'x-api-key': apiKey,
+        'anthropic-version': '2023-06-01',
+        'anthropic-dangerous-direct-browser-access': 'true'
+      },
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 1200,
+        system: systemPrompt,
+        messages: [{ role: 'user', content: userMsg }]
+      })
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      setStatus(`❌ API error: ${err.error?.message || resp.status}`);
+      btn.disabled = false; btn.textContent = '▶ Route this ticket';
+      return;
+    }
+
+    const data = await resp.json();
+    const text = data.content[0].text;
+
+    // Parse agent sections and animate them in one by one
+    for (let i = 1; i <= 6; i++) {
+      const rx = new RegExp(`\\[AGENT_${i}\\]([\\s\\S]*?)(?=\\[AGENT_${i+1}\\]|\\[RESULT\\]|$)`);
+      const m = text.match(rx);
+      outputs[i-1] = m ? m[1].trim() : '—';
+      renderAgents(i < 6 ? i : -1, {...outputs});
+      setStatus(`Agent ${i}/6 complete…`);
+      await sleep(400);
+    }
+
+    // Parse result JSON
+    const rMatch = text.match(/\[RESULT\]([\s\S]*?)$/);
+    if (rMatch) {
+      try {
+        const clean = rMatch[1].trim().replace(/```json|```/g, '').trim();
+        const r = JSON.parse(clean);
+        showResult(r);
+      } catch(e) { /* result parse failed, still show agents */ }
+    }
+
+    setStatus('✓ Routing complete.');
+    btn.textContent = '▶ Route another ticket';
+  } catch(e) {
+    setStatus(`❌ Error: ${e.message}`);
+    btn.textContent = '▶ Route this ticket';
+  }
+  btn.disabled = false;
+}
+
+function showResult(r) {
+  const pCls = { urgent: 'priority-urgent', high: 'priority-high', medium: 'priority-medium', low: 'priority-low' };
+  const pEmoji = { urgent: '🔴', high: '🟠', medium: '🟡', low: '🟢' };
+  const card = document.getElementById('resultCard');
+  document.getElementById('resultRows').innerHTML = `
+    <div class="result-row"><span class="result-key">Department</span><span class="result-val">${r.dept || '—'}</span></div>
+    <div class="result-row"><span class="result-key">Priority</span><span class="result-val ${pCls[r.priority] || ''}">${pEmoji[r.priority] || ''} ${(r.priority||'').toUpperCase()}</span></div>
+    <div class="result-row"><span class="result-key">Assigned to</span><span class="result-val">${r.agent || '—'}</span></div>
+    <div class="result-row"><span class="result-key">SLA</span><span class="result-val">${r.sla || '—'}</span></div>
+    <div class="result-row"><span class="result-key">Confidence</span><span class="result-val">${r.confidence || '—'}%</span></div>
+    <div class="result-row"><span class="result-key">Escalated</span><span class="result-val">${r.escalate ? '🚨 Yes' : '✅ No'}</span></div>
+    ${r.reply ? `<div class="result-row" style="flex-direction:column;gap:8px"><span class="result-key">Customer reply drafted</span><span class="result-val" style="font-weight:300;font-size:12px;line-height:1.7">${r.reply}</span></div>` : ''}
+  `;
+  card.classList.add('visible');
+}
+
+function setStatus(msg) { document.getElementById('statusMsg').textContent = msg; }
+function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+// ── Scroll reveal ──────────────────────────────────────────────────────────
+const observer = new IntersectionObserver(
+  entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('in'); }),
+  { threshold: 0.1 }
+);
+document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+
+// Init agent display
+renderAgents();
+</script>
+</body>
+</html>
