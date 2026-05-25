@@ -322,9 +322,32 @@
   .agent-name.done { color: var(--green); }
   .agent-output {
     font-size: 13px; color: var(--ink-2);
-    line-height: 1.6;
+    line-height: 1.7;
+    font-family: 'DM Sans', sans-serif;
+  }
+  .agent-kv { display: flex; flex-direction: column; gap: 5px; margin-top: 2px; }
+  .agent-kv-row { display: flex; gap: 8px; align-items: baseline; font-size: 12px; }
+  .agent-kv-key {
     font-family: 'DM Mono', monospace;
-    white-space: pre-wrap; word-break: break-word;
+    font-size: 10px; letter-spacing: 0.08em;
+    text-transform: uppercase; color: var(--ink-3);
+    flex-shrink: 0; min-width: 80px;
+  }
+  .agent-kv-val { color: var(--ink); font-weight: 400; line-height: 1.5; }
+  .agent-kv-val.bold { font-weight: 600; }
+  .agent-kv-val.urgent { color: var(--red); font-weight: 600; }
+  .agent-kv-val.high   { color: var(--amber); font-weight: 600; }
+  .agent-kv-val.medium { color: var(--blue); font-weight: 600; }
+  .agent-kv-val.low    { color: var(--green); font-weight: 600; }
+  .agent-kv-val.escalate-yes { color: var(--red); font-weight: 600; }
+  .agent-kv-val.escalate-no  { color: var(--green); font-weight: 600; }
+  .agent-reply-box {
+    margin-top: 4px;
+    padding: 10px 14px;
+    background: var(--bg-2);
+    border-left: 2px solid var(--rule);
+    font-size: 12px; color: var(--ink-2);
+    line-height: 1.7; font-style: italic;
   }
   .result-card {
     margin-top: 16px;
@@ -821,6 +844,58 @@ const AGENTS = [
   { icon: "🚨", name: "Escalation Reviewer",  task: "Reviewing for escalation…" }
 ];
 
+// Parse pipe-separated key:value pairs from agent output
+function formatAgentOutput(raw, agentIdx) {
+  if (!raw || raw === '—') return '';
+
+  // Strip markdown bold
+  raw = raw.replace(/\*\*(.*?)\*\*/g, '<span class="bold">$1</span>');
+
+  // Split on | and build key-value rows
+  const parts = raw.split('|').map(s => s.trim()).filter(Boolean);
+
+  // If it looks like key: value pairs
+  if (parts.length >= 2 && parts[0].includes(':')) {
+    const rows = parts.map(part => {
+      const colonIdx = part.indexOf(':');
+      if (colonIdx === -1) return `<div class="agent-kv-row"><span class="agent-kv-val">${part}</span></div>`;
+      const key = part.slice(0, colonIdx).trim();
+      let val   = part.slice(colonIdx + 1).trim();
+
+      // Detect special value types for colour coding
+      let valCls = 'agent-kv-val';
+      const valLower = val.toLowerCase().replace(/<[^>]+>/g, '');
+      if (key.toLowerCase().includes('priority')) {
+        if (valLower.includes('urgent')) valCls += ' urgent';
+        else if (valLower.includes('high')) valCls += ' high';
+        else if (valLower.includes('medium')) valCls += ' medium';
+        else if (valLower.includes('low')) valCls += ' low';
+      }
+      if (key.toLowerCase().includes('escalat')) {
+        if (valLower.includes('false') || valLower.includes('no')) valCls += ' escalate-no';
+        else if (valLower.includes('true') || valLower.includes('yes')) valCls += ' escalate-yes';
+      }
+
+      // Opening reply gets a special quoted box
+      if (key.toLowerCase().includes('reply') || key.toLowerCase().includes('opening')) {
+        return `<div class="agent-kv-row" style="flex-direction:column;gap:4px">
+          <span class="agent-kv-key">${key}</span>
+          <div class="agent-reply-box">${val}</div>
+        </div>`;
+      }
+
+      return `<div class="agent-kv-row">
+        <span class="agent-kv-key">${key}</span>
+        <span class="${valCls}">${val}</span>
+      </div>`;
+    });
+    return `<div class="agent-kv">${rows.join('')}</div>`;
+  }
+
+  // Fallback: plain text, just clean it up
+  return `<div class="agent-output">${raw}</div>`;
+}
+
 function renderAgents(activeIdx = -1, outputs = {}) {
   const stream = document.getElementById('agentStream');
   stream.innerHTML = AGENTS.map((a, i) => {
@@ -828,13 +903,17 @@ function renderAgents(activeIdx = -1, outputs = {}) {
     const isActive = i === activeIdx;
     const iconCls  = isDone ? 'done' : isActive ? 'active' : '';
     const nameCls  = isDone ? 'done' : isActive ? 'active' : '';
-    const outputTxt = isDone ? outputs[i] : isActive ? a.task : '';
+    const outputHTML = isDone
+      ? formatAgentOutput(outputs[i], i)
+      : isActive
+        ? `<div class="agent-output" style="color:var(--ink-3);font-size:12px">${a.task}</div>`
+        : '';
     return `
       <div class="agent-row visible">
         <div class="agent-icon ${iconCls}">${isDone ? '✓' : a.icon}</div>
         <div class="agent-content">
           <div class="agent-name ${nameCls}">${a.name}</div>
-          ${outputTxt ? `<div class="agent-output">${outputTxt}</div>` : ''}
+          ${outputHTML}
         </div>
       </div>`;
   }).join('');
